@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sgamusb/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -it sgamusb/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t sgamusb/multi-client ./client
+  - docker build -t sgamusb/multi-nginx ./nginx
+  - docker build -t sgamusb/multi-server ./server
+  - docker build -t sgamusb/multi-worker ./worker
+  #login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # take images and push them to docker hub
+  - docker push sgamusb/multi-client
+  - docker push sgamusb/multi-nginx
+  - docker push sgamusb/multi-server
+  - docker push sgamusb/multi-worker
+
